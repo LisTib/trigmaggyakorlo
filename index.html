@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Háromszöggyakorló</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=STIX+Two+Text:ital,wght@0,400;0,600;1,400;1,600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --paper: #f2f6fc; --grid: #cfdcee; --sheet: #fbfdff; --ink: #17264a; --ink-soft: #4d5c80;
+  --pen: #2245c4; --pen-soft: #dfe7fb; --red: #c93434; --red-soft: #fbe4e4;
+  --green: #1c7d54; --green-soft: #ddf3e8; --line: #b9c8df;
+  --f-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-math: "STIX Two Text", "Cambria Math", "Times New Roman", serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #0f1730; --grid: #1c2849; --sheet: #162040; --ink: #e7edfb; --ink-soft: #9aa9ce;
+    --pen: #86a2ff; --pen-soft: #22305e; --red: #ff8a8a; --red-soft: #4a2230;
+    --green: #67d8a5; --green-soft: #17403a; --line: #2d3c68; color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html, body { min-height: 100%; margin: 0; }
+body {
+  background-color: var(--paper);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.5;
+  padding-top: calc(20px + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1080px; margin: 0 auto; }
+.top { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: end; justify-content: space-between; margin-bottom: 20px; }
+.brand h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(1.7rem, 5vw, 2.4rem); line-height: 1.05; margin: 0; letter-spacing: -0.01em; }
+.brand p { margin: 4px 0 0; color: var(--ink-soft); }
+.tally { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { background: var(--sheet); border: 1px solid var(--line); padding: 6px 12px; min-width: 104px; }
+.chip small { display: block; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); }
+.chip b { font-family: var(--f-mono); font-weight: 500; font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+
+.layout { display: grid; grid-template-columns: 270px minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 860px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+
+.topics { display: grid; gap: 8px; }
+.topic {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; align-items: center;
+  text-align: left; width: 100%; font: inherit; color: inherit; cursor: pointer;
+  background: var(--sheet); border: 1px solid var(--line); padding: 10px 12px;
+}
+.topic:hover { border-color: var(--pen); }
+.topic:focus-visible, .lv:focus-visible, .btn:focus-visible, .key:focus-visible, .ts:focus-visible { outline: 3px solid var(--pen); outline-offset: 2px; }
+.topic[aria-pressed="true"] { border-color: var(--pen); background: var(--pen-soft); box-shadow: 3px 3px 0 var(--pen); }
+.topic .nm { font-weight: 600; }
+.topic .fm { grid-column: 1 / -1; font-family: var(--f-math); font-size: 1.05rem; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.topic .sc { font-family: var(--f-mono); font-size: 12px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+@media (max-width: 860px) { .topics { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); } }
+
+.work { display: grid; gap: 16px; min-width: 0; }
+.seg { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.seg > span { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); margin-right: 4px; }
+.lv { font: inherit; cursor: pointer; background: var(--sheet); color: var(--ink); border: 1px solid var(--line); padding: 5px 14px; }
+.lv[aria-checked="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+.sheet { background: var(--sheet); border: 1px solid var(--ink); box-shadow: 5px 5px 0 var(--line); padding: 22px clamp(14px, 4vw, 30px) 20px; min-width: 0; }
+.kind { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 2px; }
+.ask { margin: 0 0 10px; font-weight: 500; }
+i { font-style: italic; }
+.frac { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; line-height: 1.45; margin: 0 .12em; }
+.frac > span:first-child { border-bottom: 2px solid currentColor; padding: 0 .25em; }
+.frac > span:last-child { padding: 0 .25em; }
+.ov { border-top: 1.5px solid currentColor; padding: 0 .1em; margin-left: .05em; }
+
+/* Feladat: ábra + adatok */
+.task { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 14px 22px; align-items: center; }
+@media (max-width: 620px) { .task { grid-template-columns: minmax(0, 1fr); } }
+.fig { background: var(--paper); border: 1px solid var(--line); }
+.fig svg { display: block; width: 100%; height: auto; }
+.fig .tri { fill: var(--pen-soft); stroke: var(--ink); stroke-width: 1.6; stroke-linejoin: round; }
+.fig .sd { stroke-width: 3.2; stroke-linecap: round; fill: none; }
+.fig .arc { fill: none; stroke-width: 1.6; }
+.fig .vx { fill: var(--ink); font-family: var(--f-body); font-weight: 600; font-size: 15px; }
+.fig .lb { font-family: var(--f-math); font-size: 15px; }
+.fig .s-given { stroke: var(--pen); fill: var(--pen); }
+.fig .s-target { stroke: var(--red); fill: var(--red); }
+.fig .s-calc { stroke: var(--green); fill: var(--green); }
+.fig .s-other { stroke: var(--ink-soft); fill: var(--ink-soft); }
+.fig text.lb { stroke: none; paint-order: stroke; }
+.fig text.lb.halo { stroke: var(--paper); stroke-width: 4px; stroke-linejoin: round; }
+.data h3, .part h2 { margin: 0 0 6px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); font-weight: 500; font-family: var(--f-body); }
+.data ul { list-style: none; margin: 0 0 8px; padding: 0; font-family: var(--f-math); font-size: 1.25rem; line-height: 1.7; }
+.data li.given { color: var(--pen); }
+.data li.calc { color: var(--green); }
+.data li.target { color: var(--red); }
+.data li small { font-family: var(--f-body); font-size: 12px; color: var(--ink-soft); margin-left: 6px; }
+
+/* Részek */
+.part { border-top: 1px dashed var(--line); margin-top: 18px; padding-top: 14px; }
+.part[hidden] { display: none; }
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.tpl { font-family: var(--f-math); font-size: clamp(1.25rem, 5vw, 1.9rem); line-height: 2.1; overflow-x: auto; white-space: nowrap; padding: 4px 2px; }
+.tpl:empty::before { content: "Válaszd ki, melyik tételt írod fel."; font-family: var(--f-body); font-size: 14px; color: var(--ink-soft); white-space: normal; }
+.ts {
+  font: inherit; font-size: .9em; color: var(--pen); cursor: pointer; min-width: 1.9em; height: 1.55em; padding: 0 .25em; margin: .08em .06em;
+  background: var(--sheet); border: 1.5px dashed var(--line); border-radius: 0; vertical-align: middle; line-height: 1;
+}
+.ts.f { border-style: solid; border-color: var(--pen); background: var(--pen-soft); }
+.ts.act { outline: 2px solid var(--pen); outline-offset: 1px; border-color: var(--pen); }
+.ts:disabled { cursor: default; color: var(--ink); background: transparent; border: 0; min-width: 0; padding: 0; margin: 0; height: auto; }
+[hidden] { display: none !important; }
+.tpl.ok .ts { color: var(--green); }
+.keys { display: flex; flex-wrap: wrap; gap: 6px; }
+.key { font-family: var(--f-math); font-size: 1.15rem; min-width: 44px; height: 40px; padding: 0 10px; cursor: pointer; background: var(--sheet); color: var(--ink); border: 1px solid var(--line); }
+.key:hover { border-color: var(--pen); }
+.key[aria-pressed="true"] { background: var(--pen); color: var(--paper); border-color: var(--pen); }
+.key.txt { font-family: var(--f-body); font-size: .9rem; font-weight: 500; }
+.key:disabled { opacity: .45; cursor: default; }
+.grp { display: grid; gap: 8px; margin-top: 10px; }
+.grp > label { font-size: 13px; font-weight: 600; color: var(--ink-soft); }
+
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.btn { font: inherit; font-weight: 600; cursor: pointer; padding: 9px 18px; border: 1px solid var(--ink); background: var(--sheet); color: var(--ink); }
+.btn.primary { background: var(--pen); border-color: var(--pen); color: var(--paper); }
+.btn.sm { padding: 6px 12px; font-weight: 500; }
+.btn:hover { filter: brightness(1.06); }
+.btn[hidden] { display: none; }
+
+.fb { margin-top: 10px; min-height: 1.5em; font-weight: 600; }
+.fb.ok { color: var(--green); }
+.fb.bad { color: var(--red); }
+.fb.info { color: var(--ink-soft); font-weight: 500; }
+.fb .m { font-family: var(--f-math); font-size: 1.1em; color: var(--pen); }
+
+.scroll { overflow-x: auto; }
+.rows { display: grid; grid-template-columns: max-content max-content; column-gap: 22px; row-gap: 6px; align-items: center;
+  font-family: var(--f-math); font-size: clamp(1.1rem, 4.2vw, 1.55rem); width: max-content; line-height: 1.9; }
+.rows .eq { white-space: nowrap; padding: 0 .3em; }
+.rows .eq.cur { background: var(--pen-soft); box-shadow: inset 3px 0 0 var(--pen); }
+.rows .eq.auto, .rows .nt.auto { color: var(--ink-soft); }
+.rows .eq.fin { font-weight: 600; color: var(--green); }
+.rows .nt { white-space: nowrap; color: var(--pen); font-size: .85em; }
+.rows .nt.txt { font-family: var(--f-body); font-style: italic; font-size: .8rem; color: var(--ink-soft); }
+.opbox { margin-top: 14px; padding: 12px 14px; border: 1px solid var(--line); background: var(--paper); display: grid; gap: 10px; }
+.opbox[hidden] { display: none; }
+.opbox label { font-size: 13px; font-weight: 600; color: var(--ink-soft); }
+.tip { font-size: 13px; color: var(--ink-soft); margin: 0; }
+
+.rule { background: var(--sheet); border: 1px solid var(--line); padding: 14px 18px; min-width: 0; }
+.rule h2 { margin: 0 0 6px; font-family: var(--f-display); font-size: 1.05rem; font-weight: 700; }
+.rule .big { font-family: var(--f-math); font-size: clamp(1.1rem, 4.2vw, 1.5rem); color: var(--pen); overflow-x: auto; white-space: nowrap; line-height: 2.2; }
+.rule p { margin: 6px 0 0; color: var(--ink-soft); max-width: 66ch; }
+.rule.locked .big { filter: blur(6px); user-select: none; }
+
+.foot { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; margin-top: 4px; color: var(--ink-soft); font-size: 13px; }
+.linkbtn { font: inherit; background: none; border: 0; color: var(--ink-soft); text-decoration: underline; cursor: pointer; padding: 4px 0; }
+.linkbtn.warn { color: var(--red); }
+@media (prefers-reduced-motion: no-preference) { .topic, .btn, .key, .ts { transition: border-color .12s, box-shadow .12s, filter .12s, background-color .12s; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Háromszöggyakorló</h1>
+      <p>Szinusztétel és koszinusztétel: felírás gombokkal, megoldás lépésről lépésre.</p>
+    </div>
+    <div class="tally" aria-label="Összesítés">
+      <div class="chip"><small>Sorozat</small><b id="tStreak">0</b></div>
+      <div class="chip"><small>Hibátlan</small><b id="tTotal">0 / 0</b></div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="topics" id="topics" aria-label="Feladattípusok"></nav>
+
+    <section class="work">
+      <div class="seg" role="radiogroup" aria-label="Nehézség" id="levels"><span>Nehézség</span></div>
+
+      <article class="sheet" aria-labelledby="qKind">
+        <p class="kind" id="qKind"></p>
+        <p class="ask" id="qAsk"></p>
+
+        <div class="task">
+          <div class="fig"><svg id="fig" viewBox="0 0 380 260" role="img" aria-label="A háromszög ábrája"></svg></div>
+          <div class="data">
+            <h3>Adatok</h3>
+            <ul id="dataList"></ul>
+            <button class="btn sm" id="bThird" type="button" hidden></button>
+          </div>
+        </div>
+
+        <!-- 1. lépés: a tétel felírása -->
+        <div class="part" id="thmPart">
+          <h2>1. lépés · A tétel felírása</h2>
+          <div class="tabs" role="radiogroup" aria-label="Tétel" id="tabs">
+            <button type="button" class="lv" data-k="sin" role="radio" aria-checked="false">Szinusztétel</button>
+            <button type="button" class="lv" data-k="cos" role="radio" aria-checked="false">Koszinusztétel</button>
+          </div>
+          <div class="tpl" id="tpl"></div>
+          <div class="grp" id="elGrp" hidden>
+            <label>A tétel elemei: koppints egy helyre, majd egy elemre</label>
+            <div class="keys" id="elKeys"></div>
+          </div>
+          <div class="actions" id="thmActions" hidden>
+            <button class="btn primary" id="bThm" type="button">Tétel ellenőrzése</button>
+            <button class="btn" id="bClr" type="button">Törlés</button>
+          </div>
+          <div class="fb" id="fbT" role="status" aria-live="polite"></div>
+        </div>
+
+        <!-- 2. lépés: az egyenlet megoldása -->
+        <div class="part" id="solvePart" hidden>
+          <h2>2. lépés · Az egyenlet megoldása</h2>
+          <div class="scroll"><div class="rows" id="rows"></div></div>
+          <div class="opbox" id="opBox">
+            <label>Melyik műveletet végzed el mindkét oldalon?</label>
+            <div class="keys" id="opKeys"></div>
+            <div class="keys" id="operands"></div>
+            <p class="tip" id="opTip"></p>
+            <div class="keys" id="specKeys">
+              <button type="button" class="key txt" data-s="compute">Kiszámolás</button>
+              <button type="button" class="key txt" data-s="swap">Oldalcsere</button>
+              <button type="button" class="key" data-s="sqrt">√</button>
+              <button type="button" class="key" data-s="asin">sin⁻¹</button>
+              <button type="button" class="key" data-s="acos">cos⁻¹</button>
+            </div>
+          </div>
+          <div class="fb" id="fbS" role="status" aria-live="polite"></div>
+        </div>
+
+        <div class="actions">
+          <button class="btn" id="bHint" type="button">Segítség</button>
+          <button class="btn" id="bUndo" type="button" hidden>Visszalépés</button>
+          <button class="btn" id="bReveal" type="button" hidden>Megoldás megmutatása</button>
+          <button class="btn primary" id="bNext" type="button" hidden>Következő feladat</button>
+        </div>
+      </article>
+
+      <aside class="rule" id="rule" aria-label="Módszer">
+        <h2 id="ruleTitle"></h2>
+        <div class="big" id="ruleBig"></div>
+        <p id="ruleText"></p>
+      </aside>
+
+      <div class="foot">
+        <span>A haladás ezen az eszközön, a böngészőben marad meg.</span>
+        <button class="linkbtn" id="bReset" type="button">Eredmények törlése</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+/* ===== MOTOR: feladatgenerátorok, tételellenőrzés, egyenletek és átalakítások ===== */
+// ENGINE START
+const r = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
+const pick = a => a[r(0, a.length - 1)];
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = r(0, i); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const minus = s => String(s).replace(/-/g, '−');
+const frac = (n, d) => '<span class="frac"><span>' + n + '</span><span>' + d + '</span></span>';
+const RAD = Math.PI / 180;
+const snap = x => { const k = Math.round(x); return Math.abs(x - k) < 1e-9 ? k : x; };
+const near = (x, y) => Math.abs(x - y) < 1e-9 * Math.max(1, Math.abs(y));
+const z0 = x => Math.abs(x) < 1e-9 ? 0 : x;
+const sinD = d => snap(Math.sin(d * RAD));
+const cosD = d => snap(Math.cos(d * RAD));
+const asinD = v => snap(Math.asin(Math.max(-1, Math.min(1, v))) / RAD);
+const acosD = v => snap(Math.acos(Math.max(-1, Math.min(1, v))) / RAD);
+function fmtN(v, d = 4) {
+  v = snap(v);
+  if (Number.isInteger(v)) return minus(v);
+  let s = v.toFixed(d);
+  if (s.includes('.')) s = s.replace(/0+$/, '').replace(/\.$/, '');
+  if (s === '-0') s = '0';
+  return minus(s.replace('.', ','));
+}
+const isRound = (v, d) => Math.abs(v - Math.round(v * 10 ** d) / 10 ** d) < 1e-9;
+const apx = (v, d) => (isRound(v, d) ? ' = ' : ' ≈ ') + fmtN(v, d);
+const fmtDeg = v => fmtN(v, 2) + '°';
+const UNIT = ' cm';
+
+const SIDES = ['a', 'b', 'c'], ANGS = ['α', 'β', 'γ'], ORDER = ['a', 'b', 'c', 'α', 'β', 'γ'];
+const OPP = { a: 'α', b: 'β', c: 'γ', α: 'a', β: 'b', γ: 'c' };
+const isSide = k => SIDES.includes(k);
+const isAng = k => ANGS.includes(k);
+/* Tétel-elemek kulcsa: 'a','b','c' oldalak; 'sinα', 'cosβ' … szögfüggvények */
+const trigAng = k => k.slice(3);
+const elHtml = k => isSide(k) ? '<i>' + k + '</i>' : k.startsWith('sin') ? 'sin ' + trigAng(k) : k.startsWith('cos') ? 'cos ' + trigAng(k) : k;
+const az = k => (k === 'a' || k === 'α') ? 'az' : 'a';
+const Az = k => az(k)[0].toUpperCase() + az(k).slice(1);
+const nameOf = k => isSide(k) ? az(k) + ' <i>' + k + '</i> oldal' : az(k) + ' ' + k + ' szög';
+
+/* ===== Feladatgenerátorok (a, b, c, α, β, γ alapcímkékkel, utána véletlen átcímkézés) ===== */
+const dec1 = (lo, hi) => r(Math.round(lo * 10), Math.round(hi * 10)) / 10;
+const half = (lo, hi) => r(Math.round(lo * 2), Math.round(hi * 2)) / 2;
+function anglesFromSides(a, b, c) {
+  const al = acosD((b * b + c * c - a * a) / (2 * b * c)), be = acosD((a * a + c * c - b * b) / (2 * a * c));
+  return { α: al, β: be, γ: snap(180 - al - be) };
+}
+const sideByCos = (b, c, al) => Math.sqrt(b * b + c * c - 2 * b * c * cosD(al));
+/* [a, b, c, α]: egész oldalú háromszögek 60°, 90° vagy 120° szöggel (α az a-val szemközt) */
+const NICE = [[7, 3, 8, 60], [7, 5, 8, 60], [13, 7, 15, 60], [13, 8, 15, 60], [19, 5, 21, 60], [19, 16, 21, 60], [14, 6, 16, 60], [14, 10, 16, 60],
+  [7, 3, 5, 120], [13, 7, 8, 120], [19, 5, 16, 120], [14, 6, 10, 120], [5, 3, 4, 90], [10, 6, 8, 90], [13, 5, 12, 90], [17, 8, 15, 90]];
+
+function genSinSide(L) {
+  for (let i = 0; i < 1000; i++) {
+    let al, be, a;
+    if (L === 1) { al = 5 * r(6, 17); be = 5 * r(6, 17); a = r(4, 14); }
+    else if (L === 2) { al = r(20, 100); be = r(20, 100); a = r(3, 20); }
+    else { al = Math.random() < 0.5 ? half(20, 100) : r(20, 100); be = Math.random() < 0.5 ? half(20, 100) : r(20, 100); a = dec1(2, 25); }
+    const ga = 180 - al - be;
+    if (ga < (L === 1 ? 30 : 15)) continue;
+    const S = { a, b: a * sinD(be) / sinD(al), c: a * sinD(ga) / sinD(al) };
+    if (S.b < 1.5 || S.c < 1.5 || S.b > 40 || S.c > 40) continue;
+    const third = L >= 2 && Math.random() < 0.5;   // a szemközti szöget a szögösszegből kell kiszámolni
+    return { S, G: { α: al, β: be, γ: ga }, given: third ? { a, β: be, γ: ga } : { a, α: al, β: be }, target: 'b' };
+  }
+}
+function genSinAng(L) {
+  for (let i = 0; i < 1000; i++) {
+    let al, a, b;
+    if (L === 1) { al = pick([30, 45, 60, 90, 120, 135, 150]); a = r(6, 15); b = r(3, a - 1); }
+    else if (L === 2) { al = r(25, 140); a = r(5, 20); b = r(2, a - 1); }
+    else { al = Math.random() < 0.5 ? half(25, 140) : r(25, 140); a = dec1(4, 22); b = dec1(2, a - 0.5); }
+    if (b >= a) continue;                            // a nagyobb oldallal szemközti szög ismert → egyértelmű
+    const be = asinD(b * sinD(al) / a), ga = 180 - al - be;
+    if (be < 10 || ga < 10) continue;
+    return { S: { a, b, c: a * sinD(ga) / sinD(al) }, G: { α: al, β: be, γ: ga }, given: { a, b, α: al }, target: 'β' };
+  }
+}
+function genCosSide(L) {
+  for (let i = 0; i < 1000; i++) {
+    let b, c, al;
+    if (L === 1) { const t = pick(NICE); [b, c] = Math.random() < 0.5 ? [t[1], t[2]] : [t[2], t[1]]; al = t[3]; }
+    else if (L === 2) { b = r(3, 16); c = r(3, 16); al = r(20, 150); }
+    else { b = dec1(2, 20); c = dec1(2, 20); al = Math.random() < 0.5 ? half(20, 150) : r(20, 150); }
+    const a = snap(sideByCos(b, c, al)), G = anglesFromSides(a, b, c);
+    if (G.β < 8 || G.γ < 8) continue;
+    G.α = al;
+    return { S: { a, b, c }, G, given: { b, c, α: al }, target: 'a' };
+  }
+}
+function genCosAng(L) {
+  for (let i = 0; i < 1000; i++) {
+    let a, b, c;
+    if (L === 1) { const t = pick(NICE); a = t[0]; [b, c] = Math.random() < 0.5 ? [t[1], t[2]] : [t[2], t[1]]; }
+    else if (L === 2) { a = r(3, 18); b = r(3, 18); c = r(3, 18); }
+    else { a = dec1(2, 20); b = dec1(2, 20); c = dec1(2, 20); }
+    if (L > 1 && (a + b <= c + 1 || a + c <= b + 1 || b + c <= a + 1)) continue;
+    const G = anglesFromSides(a, b, c);
+    if (Math.min(G.α, G.β, G.γ) < 8) continue;
+    return { S: { a, b, c }, G, given: { a, b, c }, target: 'α' };
+  }
+}
+function relabel(t) {
+  const p = shuffle([0, 1, 2]);
+  const mk = k => isSide(k) ? SIDES[p[SIDES.indexOf(k)]] : ANGS[p[ANGS.indexOf(k)]];
+  const S = {}, G = {}, given = {};
+  SIDES.forEach(k => { S[mk(k)] = t.S[k]; });
+  ANGS.forEach(k => { G[mk(k)] = t.G[k]; });
+  ORDER.map(k => [mk(k), t.given[k]]).filter(x => x[1] !== undefined)
+    .sort((x, y) => ORDER.indexOf(x[0]) - ORDER.indexOf(y[0])).forEach(([k, v]) => { given[k] = v; });
+  return { S, G, given, target: mk(t.target) };
+}
+const valOf = (t, k) => isSide(k) ? t.S[k] : t.G[k];
+
+const TOPICS = [
+  { id: 'sinS', name: 'Szinusztétel – oldal', kind: 'Szinusztétel: hiányzó oldal', ex: '<i>a</i>, α, β → <i>b</i>', thm: 'sin', gen: genSinSide },
+  { id: 'sinA', name: 'Szinusztétel – szög', kind: 'Szinusztétel: hiányzó szög', ex: '<i>a</i>, <i>b</i>, α → β', thm: 'sin', gen: genSinAng },
+  { id: 'cosS', name: 'Koszinusztétel – oldal', kind: 'Koszinusztétel: hiányzó oldal', ex: '<i>b</i>, <i>c</i>, α → <i>a</i>', thm: 'cos', gen: genCosSide },
+  { id: 'cosA', name: 'Koszinusztétel – szög', kind: 'Koszinusztétel: hiányzó szög', ex: '<i>a</i>, <i>b</i>, <i>c</i> → α', thm: 'cos', gen: genCosAng },
+  { id: 'mixed', name: 'Vegyes', kind: 'Vegyes feladat', ex: 'melyik tétel kell?', thm: null, gen: null }
+];
+const LEVELS = [{ id: 1, name: 'Könnyű' }, { id: 2, name: 'Közepes' }, { id: 3, name: 'Nehéz' }];
+
+function makeTask(topicId, level, prevKey) {
+  const t = TOPICS.find(x => x.id === topicId);
+  let q, guard = 0;
+  do {
+    const src = t.gen ? t : pick(TOPICS.filter(x => x.gen));
+    q = relabel(src.gen(level));
+    q.topic = src.id; q.key = JSON.stringify(q.given) + q.target;
+  } while (q.key === prevKey && ++guard < 30);
+  return q;
+}
+
+/* Harmadik szög a szögösszegből, ha két szög ismert */
+function thirdAngle(known) {
+  const k = ANGS.filter(g => g in known);
+  if (k.length !== 2) return null;
+  const g = ANGS.find(x => !(x in known));
+  return { key: g, value: snap(180 - known[k[0]] - known[k[1]]), from: k };
+}
+
+/* ===== A felírt tétel ellenőrzése ===== */
+function theoremEls(kind, slots) {
+  if (kind === 'sin') { const s = slots.filter(isSide); return [s[0], OPP[s[0]], s[1], OPP[s[1]]]; }  // érvényes felírásban a szinuszok a szemközti szögekéi
+  return [slots[0], slots[1], slots[2], OPP[slots[0]]];
+}
+function usableForms(kind, known, target) {
+  const forms = [];
+  const ok = els => els.includes(target) && els.every(e => e === target || e in known);
+  if (kind === 'sin') {
+    for (const s of SIDES) for (const t of SIDES) if (s !== t) {
+      // az ismert pár elöl, a keresett pár hátul
+      if (ok([s, OPP[s], t, OPP[t]]) && !(t in known && OPP[t] in known)) forms.push([s, 'sin' + OPP[s], t, 'sin' + OPP[t]]);
+    }
+  } else {
+    for (const s of SIDES) {
+      const o = SIDES.filter(x => x !== s);
+      if (ok([s, o[0], o[1], OPP[s]])) forms.push([s, o[0], o[1], o[0], o[1], 'cos' + OPP[s]]);
+    }
+  }
+  return forms;
+}
+function checkTheorem(kind, slots, known, target) {
+  if (!kind) return { err: 'Előbb válaszd ki a tételt.' };
+  if (slots.some(s => !s)) return { err: 'Tölts ki minden helyet.' };
+  if (kind === 'sin') {
+    const sides = slots.filter(isSide), sines = slots.filter(k => !isSide(k));
+    if (sides.length !== 2 || sines.length !== 2)
+      return { err: 'A szinusztételben két oldal és két szög szinusza szerepel, például <span class="m">' + frac('<i>a</i>', 'sin α') + ' = ' + frac('<i>b</i>', 'sin β') + '</span> vagy <span class="m">' + frac('<i>a</i>', '<i>b</i>') + ' = ' + frac('sin α', 'sin β') + '</span>.' };
+    if (sides[0] === sides[1]) return { err: 'Két különböző oldal kell.' };
+    for (const g of sines) if (!sides.includes(OPP[trigAng(g)]))
+      return { err: 'A sin ' + trigAng(g) + ' nem illik ide: csak a felírt oldalakkal szemközti szögek szinusza szerepelhet.' };
+    if (sines[0] === sines[1]) return { err: 'Két különböző szög szinusza kell.' };
+    // keresztbe szorozva: oldal · (a másik oldallal szemközti szög szinusza) mindkét oldalon
+    const cross = [[slots[0], slots[3]], [slots[2], slots[1]]];
+    for (const pr of cross) {
+      const s = pr.find(isSide), g = pr.find(k => !isSide(k));
+      if (!s || !g || OPP[s] === trigAng(g))
+        return { err: 'Az arány nem jó: az oldalak úgy aránylanak egymáshoz, mint a velük szemközti szögek szinuszai. Figyeld, melyik szög melyik oldallal van szemközt, és hogy azonos sorrendben szerepeljenek.' };
+    }
+  } else {
+    const [s0, s1, s2, s3, s4, cg] = slots;
+    if (s0 === s1 || s0 === s2 || s1 === s2) return { err: 'A koszinusztételben mindhárom oldal szerepel: a bal oldalon az egyik, a jobb oldali négyzetekben a másik kettő.' };
+    if (!((s3 === s1 && s4 === s2) || (s3 === s2 && s4 === s1))) return { err: 'A kétszeres szorzatban ugyanaz a két oldal áll, amelyeknek a négyzete a jobb oldalon szerepel.' };
+    if (trigAng(cg) !== OPP[s0]) return { err: 'A koszinusz annak a szögnek a koszinusza, amely a bal oldalon álló oldallal szemközt van.' };
+  }
+  const els = theoremEls(kind, slots);
+  const unk = [...new Set(els)].filter(k => !(k in known));
+  const other = usableForms(kind === 'sin' ? 'cos' : 'sin', known, target).length > 0;
+  const tail = other ? ' Lehet, hogy itt a másik tétel kell.' : '';
+  if (!els.includes(target)) return { err: 'Ez a felírás helyes, de nem szerepel benne a keresett mennyiség (' + (isSide(target) ? '<i>' + target + '</i>' : target) + ').' + tail, valid: true };
+  if (unk.length > 1) return { err: 'Ez a felírás helyes, de több ismeretlen is van benne: ' + unk.map(k => isSide(k) ? '<i>' + k + '</i>' : k).join(', ') + '. Egyenletet csak egy ismeretlennel tudsz megoldani.' + tail, valid: true };
+  return { ok: true };
+}
+function theoremHtml(kind, slots, cell) {
+  const s = cell || (i => elHtml(slots[i]));
+  if (kind === 'sin') return frac(s(0), s(1)) + ' = ' + frac(s(2), s(3));
+  return s(0) + '² = ' + s(1) + '² + ' + s(2) + '² − 2·' + s(3) + '·' + s(4) + '·' + s(5);
+}
+
+/* ===== Egyenletek =====
+   szinusztétel: mindkét oldal szorzat  { c: szorzó, f: [[elem, kitevő], …] }
+   koszinusztétel: mindkét oldal  A·u + B  (u = a² vagy cos α), sym: még ki nem számolt alak */
+function buildEq(kind, slots, known, target) {
+  if (kind === 'sin') {
+    const unk = isSide(target) ? target : 'sin' + target;
+    const atoms = {};
+    const at = k => {
+      if (!atoms[k]) {
+        if (k === unk) atoms[k] = { html: elHtml(k), unk: true };
+        else if (isSide(k)) atoms[k] = { html: fmtN(known[k], 2), val: known[k] };
+        else atoms[k] = { html: 'sin ' + fmtDeg(known[trigAng(k)]), val: sinD(known[trigAng(k)]) };
+      }
+      return k;
+    };
+    return { kind, target, unk, atoms,
+      L: { c: 1, f: [[at(slots[0]), 1], [at(slots[1]), -1]] },
+      R: { c: 1, f: [[at(slots[2]), 1], [at(slots[3]), -1]] } };
+  }
+  const [s0, s1, s2, s3, s4] = slots, th = OPP[s0];
+  const v = k => fmtN(known[k], 2);
+  const sum = v(s1) + '² + ' + v(s2) + '²', B = known[s1] ** 2 + known[s2] ** 2, A = -2 * known[s1] * known[s2];
+  if (isSide(target)) {
+    return { kind, target, uh: '<i>' + target + '</i>²',
+      L: { sym: null, A: 1, B: 0 },
+      R: { sym: sum + ' − 2·' + v(s3) + '·' + v(s4) + '·cos ' + fmtDeg(known[th]), A: 0, B: z0(B + A * cosD(known[th])), cf: true } };
+  }
+  return { kind, target, uh: 'cos ' + target,
+    L: { sym: v(s0) + '²', A: 0, B: known[s0] ** 2 },
+    R: { sym: sum + ' − 2·' + v(s3) + '·' + v(s4) + '·cos ' + target, A, B, cf: true } };
+}
+
+/* --- megjelenítés --- */
+function renderMono(s, atoms) {
+  const num = [], den = [];
+  s.f.forEach(([k, e]) => {
+    const h = atoms[k].html, p = Math.abs(e) === 1 ? h : (h.includes(' ') ? '(' + h + ')' : h) + '<sup>' + Math.abs(e) + '</sup>';
+    (e > 0 ? num : den).push(p);
+  });
+  if (!near(s.c, 1) || !num.length) num.unshift(fmtN(s.c));
+  const n = num.join('·');
+  return den.length ? frac(n, den.join('·')) : n;
+}
+function renderLin(s, uh) {
+  if (s.sym !== null) return s.sym;
+  const t = [];
+  if (s.A) t.push({ neg: s.A < 0, h: (near(Math.abs(s.A), 1) ? '' : fmtN(Math.abs(s.A)) + '·') + uh });
+  if (s.B) t.push({ neg: s.B < 0, h: fmtN(Math.abs(s.B)) });
+  if (s.cf) t.reverse();
+  if (!t.length) return '0';
+  return t.map((x, i) => i === 0 ? (x.neg ? '−' : '') + x.h : (x.neg ? ' − ' : ' + ') + x.h).join('');
+}
+const renderEq = E => E.kind === 'sin' ? renderMono(E.L, E.atoms) + ' = ' + renderMono(E.R, E.atoms) : renderLin(E.L, E.uh) + ' = ' + renderLin(E.R, E.uh);
+const tgtHtml = t => isSide(t) ? '<i>' + t + '</i>' : t;
+
+/* --- átalakítások ---
+   op: {k:'mul'|'div', key} | {k:'mul'|'div', num} | {k:'add', a, b} | {k:'compute'} | {k:'swap'} | {k:'sqrt'|'asin'|'acos'} */
+const clone = o => JSON.parse(JSON.stringify(o));
+function monoAdd(s, key, e) {
+  const f = s.f.map(x => x.slice()), i = f.findIndex(x => x[0] === key);
+  if (i < 0) f.push([key, e]); else { f[i][1] += e; if (!f[i][1]) f.splice(i, 1); }
+  return { c: s.c, f };
+}
+const isoS = (s, unk) => near(s.c, 1) && s.f.length === 1 && s.f[0][0] === unk && s.f[0][1] === 1;
+const isoC = s => s.sym === null && near(s.A, 1) && Math.abs(s.B) < 1e-9;
+const pureC = s => s.sym === null && Math.abs(s.A) < 1e-9;
+
+function applySin(E, op) {
+  const N = clone(E), unk = N.unk;
+  if (op.k === 'mul' || op.k === 'div') {
+    const e = op.k === 'mul' ? 1 : -1;
+    if (op.key) { N.L = monoAdd(N.L, op.key, e); N.R = monoAdd(N.R, op.key, e); }
+    else {
+      if (near(op.num, 1)) return { err: 'Az 1-gyel ' + (e > 0 ? 'szorzás' : 'osztás') + ' nem változtat az egyenleten.' };
+      N.L.c *= op.num ** e; N.R.c *= op.num ** e;
+    }
+    return { E: N };
+  }
+  if (op.k === 'compute') {
+    let ch = false;
+    for (const s of [N.L, N.R]) s.f = s.f.filter(([k, e]) => { const a = N.atoms[k]; if (a.unk) return true; s.c *= a.val ** e; ch = true; return false; });
+    if (!ch) return { err: 'Nincs mit kiszámolni: az ismert számok már egy-egy értékké vannak összevonva.' };
+    return { E: N };
+  }
+  if (op.k === 'swap') { [N.L, N.R] = [N.R, N.L]; return { E: N }; }
+  if (op.k === 'sqrt') return { err: 'Itt nincs négyzetre emelt ismeretlen, nem kell gyököt vonni.' };
+  if (op.k === 'acos') return { err: 'A szinusztételben nincs koszinusz: itt nem a cos⁻¹ kell.' };
+  if (op.k === 'asin') {
+    if (!unk.startsWith('sin')) return { err: 'Most egy oldalt keresünk, nem szöget: a sin⁻¹-re nincs szükség.' };
+    const side = isoS(N.L, unk) ? 'L' : isoS(N.R, unk) ? 'R' : null;
+    if (!side) return { err: 'Előbb rendezd úgy az egyenletet, hogy az egyik oldalon csak sin ' + N.target + ' álljon.' };
+    const o = side === 'L' ? N.R : N.L;
+    if (o.f.length) return { err: 'Előbb számold ki a másik oldal értékét (Kiszámolás).' };
+    if (o.c > 1 + 1e-12) return { err: 'A szinusz értéke nem lehet 1-nél nagyobb.' };
+    return { final: { arg: o.c, value: asinD(o.c) } };
+  }
+  return { err: 'Ismeretlen művelet.' };
+}
+function applyCos(E, op) {
+  const N = clone(E), sym = N.L.sym !== null || N.R.sym !== null;
+  const calc = { err: 'Előbb végezd el a kijelölt számolásokat (Kiszámolás), utána rendezd az egyenletet.' };
+  const isAngT = !isSide(N.target);
+  if (op.k === 'add') {
+    if (sym) return calc;
+    if (!op.a && !op.b) return { err: 'A 0 hozzáadása nem változtat az egyenleten.' };
+    for (const s of [N.L, N.R]) { s.A = z0(s.A + op.a); s.B = z0(s.B + op.b); }
+    return { E: N };
+  }
+  if (op.k === 'mul' || op.k === 'div') {
+    if (sym) return calc;
+    if (!op.num) return { err: op.k === 'mul' ? 'Nullával szorozni nem szabad.' : 'Nullával nem lehet osztani.' };
+    if (near(op.num, 1)) return { err: 'Az 1-gyel ' + (op.k === 'mul' ? 'szorzás' : 'osztás') + ' nem változtat az egyenleten.' };
+    const k = op.k === 'mul' ? op.num : 1 / op.num;
+    for (const s of [N.L, N.R]) { s.A = z0(snap(s.A * k)); s.B = z0(snap(s.B * k)); }
+    return { E: N };
+  }
+  if (op.k === 'compute') {
+    if (!sym) return { err: 'Nincs mit kiszámolni: a számok már ki vannak számolva.' };
+    N.L.sym = null; N.R.sym = null;
+    N.L.B = z0(snap(N.L.B)); N.R.B = z0(snap(N.R.B)); N.L.A = z0(snap(N.L.A)); N.R.A = z0(snap(N.R.A));
+    return { E: N };
+  }
+  if (op.k === 'swap') { [N.L, N.R] = [N.R, N.L]; return { E: N }; }
+  if (op.k === 'asin') return { err: 'A koszinusztételben nincs szinusz: itt nem a sin⁻¹ kell.' };
+  if (op.k === 'sqrt' || op.k === 'acos') {
+    if (op.k === 'sqrt' && isAngT) return { err: 'Most szöget keresünk: a koszinuszából a cos⁻¹ adja meg, gyököt vonni nem kell.' };
+    if (op.k === 'acos' && !isAngT) return { err: 'Most oldalt keresünk, nincs ismeretlen koszinusz. Az oldal négyzetéből gyökvonással kapod meg.' };
+    const side = isoC(N.L) && pureC(N.R) ? N.R : isoC(N.R) && pureC(N.L) ? N.L : null;
+    if (!side) {
+      if (sym) return calc;
+      return { err: 'Előbb rendezd úgy az egyenletet, hogy az egyik oldalon csak ' + N.uh + ' álljon, a másikon egy szám.' };
+    }
+    if (op.k === 'sqrt') {
+      if (side.B <= 0) return { err: 'Negatív számból nem vonhatunk gyököt: valahol hiba van.' };
+      return { final: { arg: side.B, value: Math.sqrt(side.B) } };
+    }
+    if (Math.abs(side.B) > 1 + 1e-12) return { err: 'A koszinusz értéke −1 és 1 közé esik: valahol hiba van.' };
+    return { final: { arg: side.B, value: acosD(side.B) } };
+  }
+  return { err: 'Ismeretlen művelet.' };
+}
+const applyOp = (E, op) => E.kind === 'sin' ? applySin(E, op) : applyCos(E, op);
+
+const paren = v => v < 0 ? '(' + fmtN(v) + ')' : fmtN(v);
+function opNote(E, op) {
+  if (op.k === 'compute') return { h: 'kiszámolás', txt: true };
+  if (op.k === 'swap') return { h: 'oldalcsere', txt: true };
+  if (op.k === 'sqrt') return { h: 'gyökvonás', txt: true };
+  if (op.k === 'asin') return { h: 'sin⁻¹', txt: false };
+  if (op.k === 'acos') return { h: 'cos⁻¹', txt: false };
+  if (op.k === 'add') {
+    const t = [];
+    if (op.a) t.push((op.a < 0 ? '− ' : '+ ') + (near(Math.abs(op.a), 1) ? '' : fmtN(Math.abs(op.a)) + '·') + E.uh);
+    if (op.b) t.push((op.b < 0 ? '− ' : '+ ') + fmtN(Math.abs(op.b)));
+    return { h: '| ' + t.join(' ') };
+  }
+  const sg = op.k === 'mul' ? '· ' : ': ';
+  return { h: '| ' + sg + (op.key ? E.atoms[op.key].html : paren(op.num)) };
+}
+/* Kész-e (szinusztétel, oldal): b = szám */
+function doneSin(E) {
+  if (E.kind !== 'sin' || E.unk.startsWith('sin')) return null;
+  if (isoS(E.L, E.unk) && !E.R.f.length) return E.R.c;
+  if (isoS(E.R, E.unk) && !E.L.f.length) return E.L.c;
+  return null;
+}
+/* Egy lépés: új egyenlet, megjegyzés, és ha vége, a végeredmény sora */
+function advance(E, op) {
+  const res = applyOp(E, op);
+  if (res.err) return res;
+  const note = opNote(E, op), t = E.target, f = res.final;
+  if (f) {
+    const html = op.k === 'sqrt'
+      ? tgtHtml(t) + ' = √<span class="ov">' + fmtN(f.arg) + '</span>' + apx(f.value, 2) + UNIT
+      : t + ' = ' + (op.k === 'asin' ? 'sin⁻¹' : 'cos⁻¹') + ' ' + paren(f.arg) + apx(f.value, 1) + '°';
+    return { E, note, eq: null, final: { html, value: f.value } };
+  }
+  const v = doneSin(res.E);
+  return { E: res.E, note, eq: renderEq(res.E), final: v === null ? null : { html: tgtHtml(t) + apx(v, 2) + UNIT, value: v } };
+}
+
+/* A javasolt következő lépés */
+function nextOp(E) {
+  if (E.kind === 'sin') {
+    const unk = E.unk, has = s => s.f.some(x => x[0] === unk);
+    if (doneSin(E) !== null) return null;
+    if (has(E.L) && has(E.R)) return { k: 'div', key: unk };
+    const U = has(E.L) ? E.L : E.R, O = U === E.L ? E.R : E.L;
+    const ue = U.f.find(x => x[0] === unk)[1];
+    if (ue < 0) return { k: 'mul', key: unk };
+    const den = U.f.find(x => x[0] !== unk && x[1] < 0); if (den) return { k: 'mul', key: den[0] };
+    const nu = U.f.find(x => x[0] !== unk && x[1] > 0); if (nu) return { k: 'div', key: nu[0] };
+    if (!near(U.c, 1)) return { k: 'div', num: U.c };
+    if (O.f.length) return { k: 'compute' };
+    return unk.startsWith('sin') ? { k: 'asin' } : null;
+  }
+  const { L, R } = E;
+  if (L.sym !== null || R.sym !== null) return { k: 'compute' };
+  if (L.A && R.A) return { k: 'add', a: -R.A, b: 0 };
+  const U = L.A ? L : R;
+  if (U.B) return { k: 'add', a: 0, b: -U.B };
+  if (!near(U.A, 1)) return { k: 'div', num: U.A };
+  return { k: isSide(E.target) ? 'sqrt' : 'acos' };
+}
+function derive(E) {
+  const rows = []; let cur = E, op, g = 0, final = null;
+  while (!final && (op = nextOp(cur)) && g++ < 30) {
+    const s = advance(cur, op);
+    if (s.err) break;
+    rows.push({ note: s.note, eq: s.eq, final: s.final });
+    cur = s.E; final = s.final;
+  }
+  return { rows, final };
+}
+// ENGINE END
+
+/* ===== Felület ===== */
+const KEY = 'haromszoggyakorlo.v1';
+const $ = id => document.getElementById(id);
+let state = { topic: 'sinS', level: 1, streak: 0, stats: {} };
+let cur = null, prevKey = '';
+let st = null;   // az aktuális feladat munkaállapota
+
+function load() {
+  try {
+    const s = JSON.parse(localStorage.getItem(KEY) || 'null');
+    if (s && typeof s === 'object') {
+      state.topic = TOPICS.some(t => t.id === s.topic) ? s.topic : 'sinS';
+      state.level = [1, 2, 3].includes(s.level) ? s.level : 1;
+      state.streak = Number.isFinite(s.streak) ? s.streak : 0;
+      state.stats = s.stats && typeof s.stats === 'object' ? s.stats : {};
+    }
+  } catch (e) { /* nincs mentett adat */ }
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* nem baj */ } }
+const stat = id => state.stats[id] || { ok: 0, done: 0 };
+
+function renderTopics() {
+  $('topics').innerHTML = TOPICS.map(t => {
+    const s = stat(t.id);
+    return '<button type="button" class="topic" data-id="' + t.id + '" aria-pressed="' + (t.id === state.topic) + '">' +
+      '<span class="nm">' + t.name + '</span><span class="sc">' + s.ok + ' / ' + s.done + '</span>' +
+      '<span class="fm">' + t.ex + '</span></button>';
+  }).join('');
+}
+function renderLevels() {
+  const box = $('levels');
+  box.querySelectorAll('.lv').forEach(n => n.remove());
+  LEVELS.forEach(l => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'lv'; b.dataset.id = l.id; b.textContent = l.name;
+    b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(l.id === state.level));
+    box.appendChild(b);
+  });
+}
+function renderTally() {
+  let ok = 0, done = 0;
+  Object.values(state.stats).forEach(s => { ok += s.ok; done += s.done; });
+  $('tStreak').textContent = state.streak;
+  $('tTotal').textContent = ok + ' / ' + done;
+}
+const RULES = {
+  sin: { title: 'Szinusztétel',
+    big: frac('<i>a</i>', 'sin α') + ' = ' + frac('<i>b</i>', 'sin β') + ' = ' + frac('<i>c</i>', 'sin γ'),
+    text: 'Az oldalak úgy aránylanak egymáshoz, mint a velük szemközti szögek szinuszai, ezért a/b = sin α / sin β alakban is felírható. Akkor használd, ha ismersz egy oldalt és a vele szemközti szöget (egy teljes párt), és a másik párból egy adatot. Szögnél sin⁻¹ adja a szöget; ez egyértelmű, ha a nagyobb oldallal szemközti szög ismert.' },
+  cos: { title: 'Koszinusztétel',
+    big: '<i>c</i>² = <i>a</i>² + <i>b</i>² − 2<i>ab</i>·cos γ',
+    text: 'Két oldalból és a közbezárt szögből megkapod a harmadik oldalt (a végén gyökvonással), három oldalból pedig bármelyik szöget (a végén cos⁻¹). A bal oldalon álló oldallal szemközti szög koszinusza szerepel.' }
+};
+function renderRule() {
+  const thm = TOPICS.find(x => x.id === cur.topic).thm;
+  const locked = state.topic === 'mixed' && !st.hintShown && !st.finished;
+  const R = RULES[thm];
+  $('rule').classList.toggle('locked', locked);
+  $('ruleTitle').textContent = locked ? 'Melyik tétel kell ide?' : R.title;
+  $('ruleBig').innerHTML = R.big;
+  $('ruleText').textContent = locked ? 'Nézd meg, mely adatok ismertek, és mit keresel. Ha elakadsz, kérj segítséget.' : R.text;
+}
+function setFb(id, cls, msg) { $(id).className = 'fb ' + cls; $(id).innerHTML = msg; }
+function clearFb() { setFb('fbT', '', ''); setFb('fbS', '', ''); }
+const fbId = () => st.phase === 'thm' ? 'fbT' : 'fbS';
+
+/* ---------- Ábra ---------- */
+function drawFig() {
+  const S = cur.S, G = cur.G, W = 380, H = 260, pad = 46;
+  const P = { A: [0, 0], B: [S.c, 0], C: [S.b * cosD(G.α), S.b * sinD(G.α)] };
+  const xs = Object.values(P).map(p => p[0]), ys = Object.values(P).map(p => p[1]);
+  const mnx = Math.min(...xs), mxx = Math.max(...xs), mny = Math.min(...ys), mxy = Math.max(...ys);
+  const sc = Math.min((W - 2 * pad) / (mxx - mnx), (H - 2 * pad) / (mxy - mny));
+  const ox = (W - (mxx - mnx) * sc) / 2, oy = (H - (mxy - mny) * sc) / 2;
+  const Q = {}; for (const k in P) Q[k] = [ox + (P[k][0] - mnx) * sc, H - oy - (P[k][1] - mny) * sc];
+  const cen = [(Q.A[0] + Q.B[0] + Q.C[0]) / 3, (Q.A[1] + Q.B[1] + Q.C[1]) / 3];
+  const V = { α: 'A', β: 'B', γ: 'C' }, SE = { a: ['B', 'C'], b: ['A', 'C'], c: ['A', 'B'] };
+  const unit = (p, q) => { const dx = q[0] - p[0], dy = q[1] - p[1], l = Math.hypot(dx, dy) || 1; return [dx / l, dy / l]; };
+  const status = k => st.found && k === cur.target ? 'calc' : k === cur.target ? 'target' : k in cur.given ? 'given' : k in st.known ? 'calc' : (st.finished ? 'calc' : 'other');
+  const label = k => {
+    const s = status(k), nm = isSide(k) ? '<tspan font-style="italic">' + k + '</tspan>' : k;
+    const v = valOf(cur, k);
+    if (s === 'target') return nm + ' = ?';
+    if (s === 'other') return nm;
+    const d = k in cur.given ? 2 : isSide(k) ? 2 : 1;
+    return nm + apx(v, d) + (isSide(k) ? '' : '°');
+  };
+  let out = '<polygon class="tri" points="' + [Q.A, Q.B, Q.C].map(p => p.join(',')).join(' ') + '"/>';
+  // kiemelt oldalak
+  for (const k of SIDES) {
+    const s = status(k); if (s === 'other') continue;
+    const [p, q] = SE[k].map(n => Q[n]);
+    out += '<line class="sd s-' + s + '" x1="' + p[0] + '" y1="' + p[1] + '" x2="' + q[0] + '" y2="' + q[1] + '"/>';
+  }
+  // szögívek és feliratok
+  for (const g of ANGS) {
+    const v = Q[V[g]], others = ['A', 'B', 'C'].filter(n => n !== V[g]).map(n => Q[n]);
+    const u1 = unit(v, others[0]), u2 = unit(v, others[1]);
+    const len = Math.min(Math.hypot(others[0][0] - v[0], others[0][1] - v[1]), Math.hypot(others[1][0] - v[0], others[1][1] - v[1]));
+    const rr = Math.min(24, len * 0.3), s = status(g);
+    const cross = u1[0] * u2[1] - u1[1] * u2[0];
+    if (Math.abs(G[g] - 90) < 1e-6) {
+      const d = rr * 0.7, c1 = [v[0] + u1[0] * d, v[1] + u1[1] * d], c2 = [v[0] + u2[0] * d, v[1] + u2[1] * d], c3 = [c1[0] + u2[0] * d, c1[1] + u2[1] * d];
+      out += '<path class="arc s-' + s + '" style="fill:none" d="M' + c1 + ' L' + c3 + ' L' + c2 + '"/>';
+    } else {
+      out += '<path class="arc s-' + s + '" style="fill:none" d="M' + (v[0] + u1[0] * rr) + ',' + (v[1] + u1[1] * rr) +
+        ' A' + rr + ',' + rr + ' 0 0 ' + (cross > 0 ? 1 : 0) + ' ' + (v[0] + u2[0] * rr) + ',' + (v[1] + u2[1] * rr) + '"/>';
+    }
+    let bx = u1[0] + u2[0], by = u1[1] + u2[1]; const bl = Math.hypot(bx, by) || 1; bx /= bl; by /= bl;
+    const dist = Math.min(78, Math.max(rr + 20, 20 / Math.sin(G[g] * RAD / 2)));
+    const tx = v[0] + bx * dist, ty = v[1] + by * dist;
+    out += '<text class="lb halo s-' + s + '" x="' + tx + '" y="' + ty + '" text-anchor="middle" dominant-baseline="middle">' + label(g) + '</text>';
+  }
+  // oldalfeliratok kívül
+  for (const k of SIDES) {
+    const [p, q] = SE[k].map(n => Q[n]), m = [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2];
+    let nx = -(q[1] - p[1]), ny = q[0] - p[0]; const l = Math.hypot(nx, ny) || 1; nx /= l; ny /= l;
+    if ((m[0] - cen[0]) * nx + (m[1] - cen[1]) * ny < 0) { nx = -nx; ny = -ny; }
+    const tx = m[0] + nx * 14, ty = m[1] + ny * 14;
+    const anchor = nx > 0.35 ? 'start' : nx < -0.35 ? 'end' : 'middle';
+    out += '<text class="lb halo s-' + status(k) + '" x="' + tx + '" y="' + ty + '" text-anchor="' + anchor + '" dominant-baseline="middle">' + label(k) + '</text>';
+  }
+  // csúcsok
+  for (const n of ['A', 'B', 'C']) {
+    const u = unit(cen, Q[n]);
+    out += '<text class="vx" x="' + (Q[n][0] + u[0] * 15) + '" y="' + (Q[n][1] + u[1] * 15) + '" text-anchor="middle" dominant-baseline="middle">' + n + '</text>';
+  }
+  $('fig').innerHTML = out;
+}
+
+/* ---------- Adatok ---------- */
+function renderData() {
+  const li = [];
+  for (const k of ORDER) {
+    if (k in cur.given) li.push('<li class="given">' + (isSide(k) ? '<i>' + k + '</i> = ' + fmtN(cur.given[k], 2) + UNIT : k + ' = ' + fmtDeg(cur.given[k])) + '</li>');
+  }
+  if (st.third) {
+    const t = st.third;
+    li.push('<li class="calc">' + t.key + ' = 180° − ' + fmtDeg(st.known[t.from[0]]) + ' − ' + fmtDeg(st.known[t.from[1]]) + ' = ' + fmtDeg(t.value) + '<small>szögösszeg</small></li>');
+  }
+  const t = cur.target;
+  const d = isSide(t) ? 2 : 1;
+  li.push('<li class="' + (st.found !== null ? 'calc' : 'target') + '">' + tgtHtml(t) +
+    (st.found !== null ? apx(st.found, d) + (isSide(t) ? UNIT : '°') : ' = ?') + '<small>keresett</small></li>');
+  $('dataList').innerHTML = li.join('');
+  const th = thirdAngle(st.known);
+  const b = $('bThird');
+  b.hidden = !(th && st.phase === 'thm');
+  if (th) b.innerHTML = th.key + ' kiszámolása a szögösszegből';
+}
+
+/* ---------- Tétel-építő ---------- */
+function renderTabs() {
+  $('tabs').querySelectorAll('.lv').forEach(b => {
+    b.setAttribute('aria-checked', String(b.dataset.k === st.thm.kind));
+    b.disabled = st.phase !== 'thm';
+  });
+}
+function renderTpl() {
+  const T = st.thm, box = $('tpl');
+  if (!T.kind) { box.innerHTML = ''; $('elGrp').hidden = true; $('thmActions').hidden = true; return; }
+  const locked = st.phase !== 'thm';
+  box.classList.toggle('ok', locked);
+  box.innerHTML = theoremHtml(T.kind, T.slots, i => {
+    const v = T.slots[i];
+    return '<button type="button" class="ts' + (v ? ' f' : '') + (i === T.active && !locked ? ' act' : '') + '" data-i="' + i + '"' + (locked ? ' disabled' : '') +
+      ' aria-label="' + (i + 1) + '. hely">' + (v ? elHtml(v) : '&nbsp;') + '</button>';
+  });
+  $('elGrp').hidden = locked; $('thmActions').hidden = locked;
+  const trig = T.kind === 'sin' ? 'sin' : 'cos';
+  $('elKeys').innerHTML = [...SIDES, ...ANGS.map(g => trig + g)].map(k =>
+    '<button type="button" class="key" data-k="' + k + '">' + elHtml(k) + '</button>').join('');
+}
+function chooseThm(kind) {
+  if (st.phase !== 'thm') return;
+  st.thm = { kind, slots: Array(kind === 'sin' ? 4 : 6).fill(null), active: 0 };
+  renderTabs(); renderTpl(); setFb('fbT', '', '');
+}
+function putEl(k) {
+  const T = st.thm; if (!T.kind || st.phase !== 'thm') return;
+  if (T.kind === 'cos') {
+    const want = T.active === 5 ? 'trig' : 'side';
+    if ((want === 'side') !== isSide(k)) {
+      setFb('fbT', 'info', want === 'side' ? 'Ide egy oldal kerül.' : 'Ide egy szög koszinusza kerül.');
+      return;
+    }
+  }
+  T.slots[T.active] = k;
+  const n = T.slots.findIndex((v, i) => !v && i > T.active), m = T.slots.findIndex(v => !v);
+  T.active = n >= 0 ? n : m >= 0 ? m : T.active;
+  setFb('fbT', '', '');
+  renderTpl();
+}
+function checkThm() {
+  if (st.phase !== 'thm') return;
+  const T = st.thm;
+  const res = checkTheorem(T.kind, T.slots, st.known, cur.target);
+  if (res.ok) { acceptThm(false); return; }
+  if (!T.kind || T.slots.some(s => !s)) { setFb('fbT', 'info', res.err); return; }
+  st.errors++; st.hintShown = true; renderRule();
+  setFb('fbT', 'bad', res.err);
+  if (st.errors >= 2) $('bReveal').hidden = false;
+}
+function acceptThm(auto) {
+  const T = st.thm;
+  st.E = buildEq(T.kind, T.slots, st.known, cur.target);
+  st.rows = [
+    { eq: theoremHtml(T.kind, T.slots), note: 'behelyettesítés', txt: true },
+    { eq: renderEq(st.E), note: '' }
+  ];
+  st.hist = []; st.phase = 'solve'; st.selOp = null;
+  renderTabs(); renderTpl(); renderData();
+  setFb('fbT', auto ? 'info' : 'ok', auto ? 'A program írta fel a tételt.' : 'Helyes! Az ismert adatokat a program behelyettesítette.');
+  $('solvePart').hidden = false;
+  renderSolve();
+  if (!auto) $('solvePart').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+
+/* ---------- Egyenletmegoldás ---------- */
+function renderRows() {
+  const n = st.rows.length;
+  $('rows').innerHTML = st.rows.map((row, i) => {
+    const c = (row.auto ? ' auto' : '') + (row.fin ? ' fin' : '') + (i === n - 1 && !st.finished ? ' cur' : '');
+    return '<div class="eq' + c + '">' + row.eq + '</div>' +
+      '<div class="nt' + (row.txt ? ' txt' : '') + (row.auto ? ' auto' : '') + '">' + (row.note || '') + '</div>';
+  }).join('');
+}
+function operandList() {
+  const E = st.E, out = [], seen = new Set();
+  const add = (html, op) => { if (!seen.has(html)) { seen.add(html); out.push({ html, op }); } };
+  const k = st.selOp;
+  if (E.kind === 'sin') {
+    for (const s of [E.L, E.R]) s.f.forEach(([key]) => add(E.atoms[key].html, { key }));
+    for (const s of [E.L, E.R]) if (!near(s.c, 1)) add(fmtN(s.c), { num: s.c });
+    return out.map(o => ({ html: o.html, op: Object.assign({ k: k === '·' ? 'mul' : 'div' }, o.op) }));
+  }
+  if (E.L.sym !== null || E.R.sym !== null) return null;
+  if (k === '+' || k === '−') {
+    const sg = k === '+' ? 1 : -1;
+    for (const s of [E.L, E.R]) {
+      if (s.A) add((near(Math.abs(s.A), 1) ? '' : fmtN(Math.abs(s.A)) + '·') + E.uh, { k: 'add', a: sg * Math.abs(s.A), b: 0 });
+      if (s.B) add(fmtN(Math.abs(s.B)), { k: 'add', a: 0, b: sg * Math.abs(s.B) });
+    }
+    return out.map(o => ({ html: o.html, op: o.op }));
+  }
+  const kk = k === '·' ? 'mul' : 'div';
+  const vals = [];
+  for (const s of [E.L, E.R]) for (const v of [s.A, s.B]) if (v && !near(Math.abs(v), 1)) { vals.push(Math.abs(v)); if (v < 0) vals.push(v); }
+  vals.push(-1);
+  vals.forEach(v => add(paren(v), { k: kk, num: v }));
+  return out;
+}
+function renderSolve() {
+  renderRows();
+  const E = st.E, sin = E.kind === 'sin';
+  $('opBox').hidden = st.finished;
+  const ops = sin ? ['·', ':'] : ['+', '−', '·', ':'];
+  $('opKeys').innerHTML = ops.map(o => '<button type="button" class="key" data-o="' + o + '" aria-pressed="' + (st.selOp === o) + '">' + o + '</button>').join('');
+  const list = st.selOp ? operandList() : [];
+  $('operands').innerHTML = (list || []).map((o, i) => '<button type="button" class="key" data-i="' + i + '">' + o.html + '</button>').join('');
+  st.opList = list || [];
+  $('opTip').textContent = !st.selOp ? 'Válassz műveletet (' + ops.join(' ') + '), utána azt, amivel mindkét oldalt ' + (sin ? 'szorzod vagy osztod.' : 'módosítod.')
+    : list === null ? 'Előbb végezd el a kijelölt számolásokat a Kiszámolás gombbal.'
+    : 'Mivel? (' + st.selOp + ')';
+  $('bUndo').hidden = st.finished || !st.hist.length;
+}
+function userOp(op) {
+  if (st.finished || st.phase !== 'solve') return;
+  const s = advance(st.E, op);
+  if (s.err) {
+    st.rejects++; setFb('fbS', 'info', s.err);
+    if (st.rejects >= 3) $('bReveal').hidden = false;
+    return;
+  }
+  st.hist.push({ E: st.E, len: st.rows.length });
+  const last = st.rows[st.rows.length - 1];
+  last.note = s.note.h; last.txt = !!s.note.txt;
+  st.E = s.E; st.selOp = null;
+  if (s.eq) st.rows.push({ eq: s.eq, note: '' });
+  if (s.final) { st.rows.push({ eq: s.final.html, note: '', fin: true }); finish(s.final.value, false); return; }
+  setFb('fbS', '', '');
+  renderSolve();
+}
+function undo() {
+  if (st.finished || !st.hist.length) return;
+  const h = st.hist.pop();
+  st.E = h.E; st.rows.length = h.len;
+  const last = st.rows[st.rows.length - 1]; last.note = ''; last.txt = false;
+  st.selOp = null; renderSolve(); setFb('fbS', 'info', 'Visszaléptél egy lépést.');
+}
+function finish(value, revealed) {
+  st.finished = true; st.found = value; st.phase = 'done';
+  const credit = !revealed && st.errors === 0;
+  const s = stat(state.topic);
+  state.stats[state.topic] = { ok: s.ok + (credit ? 1 : 0), done: s.done + 1 };
+  state.streak = credit ? state.streak + 1 : 0;
+  save(); renderTopics(); renderTally();
+  renderSolve(); renderData(); drawFig(); renderRule();
+  $('bHint').hidden = true; $('bReveal').hidden = true; $('bUndo').hidden = true; $('bNext').hidden = false;
+  const tv = valOf(cur, cur.target), d = isSide(cur.target) ? 2 : 1;
+  const res = tgtHtml(cur.target) + apx(tv, d) + (isSide(cur.target) ? UNIT : '°');
+  if (revealed) setFb('fbS', 'info', 'A hátralévő lépéseket a program mutatta meg: <span class="m">' + res + '</span>. Ez a feladat nem számít hibátlannak.');
+  else setFb('fbS', 'ok', (credit ? 'Kész, hibátlanul! ' : 'Kész! ') + '<span class="m">' + res + '</span>');
+  $('bNext').focus({ preventScroll: true });
+}
+function reveal() {
+  if (st.finished) return;
+  if (st.phase === 'thm') {
+    let forms = usableForms(TOPICS.find(x => x.id === cur.topic).thm, st.known, cur.target);
+    if (!forms.length) { doThird(); forms = usableForms(TOPICS.find(x => x.id === cur.topic).thm, st.known, cur.target); }
+    const kind = forms[0].length === 4 ? 'sin' : 'cos';
+    st.thm = { kind, slots: forms[0].slice(), active: 0 };
+    acceptThm(true);
+  }
+  const d = derive(st.E);
+  d.rows.forEach(row => {
+    const last = st.rows[st.rows.length - 1];
+    last.note = row.note.h; last.txt = !!row.note.txt;
+    if (row.eq) st.rows.push({ eq: row.eq, note: '', auto: true });
+    if (row.final) st.rows.push({ eq: row.final.html, note: '', fin: true, auto: true });
+  });
+  finish(d.final ? d.final.value : valOf(cur, cur.target), true);
+}
+function doThird() {
+  const th = thirdAngle(st.known);
+  if (!th || st.phase !== 'thm') return;
+  st.known[th.key] = th.value; st.third = th;
+  renderData(); drawFig();
+  setFb('fbT', 'ok', 'Most már ' + th.key + ' is ismert.');
+}
+
+/* ---------- Segítség ---------- */
+function hint() {
+  st.hintShown = true; renderRule();
+  if (st.phase === 'thm') {
+    const thm = TOPICS.find(x => x.id === cur.topic).thm;
+    const forms = usableForms(thm, st.known, cur.target);
+    if (!forms.length) {
+      const th = thirdAngle(st.known);
+      setFb('fbT', 'info', 'Két szöget ismersz: a szögösszegből (180°) előbb számold ki ' + az(th.key) + ' ' + th.key + ' szöget. Így meglesz egy teljes oldal–szög pár.');
+      return;
+    }
+    if (st.thm.kind !== thm || st.hintLevel === 0) {
+      st.hintLevel = 1;
+      const why = thm === 'sin'
+        ? 'Van egy ismert oldal és a vele szemközti szög: ez egy teljes pár, ezért a <b>szinusztétel</b> kell.'
+        : (isSide(cur.target) ? 'Két oldal és a közbezárt szög ismert' : 'Mindhárom oldal ismert') + ': ezért a <b>koszinusztétel</b> kell.';
+      setFb('fbT', 'info', why);
+      return;
+    }
+    setFb('fbT', 'info', 'Írd fel így: <span class="m">' + theoremHtml(thm, forms[0]) + '</span>');
+    return;
+  }
+  const op = nextOp(st.E);
+  if (!op) return;
+  const n = opNote(st.E, op);
+  setFb('fbS', 'info', n.txt ? 'Javasolt lépés: ' + n.h + '.' : (op.k === 'asin' || op.k === 'acos')
+    ? 'Javasolt lépés: <span class="m">' + n.h + '</span> – ebből kapod meg a szöget.'
+    : 'Javasolt lépés: mindkét oldalon <span class="m">' + n.h.replace('| ', '') + '</span>');
+}
+
+/* ---------- Új feladat ---------- */
+function newTask() {
+  cur = makeTask(state.topic, state.level, prevKey);
+  prevKey = cur.key;
+  st = { phase: 'thm', known: Object.assign({}, cur.given), third: null, thm: { kind: null, slots: [], active: 0 },
+    E: null, rows: [], hist: [], errors: 0, rejects: 0, hintShown: false, hintLevel: 0, finished: false, found: null, selOp: null, opList: [] };
+  const t = TOPICS.find(x => x.id === cur.topic);
+  $('qKind').textContent = state.topic === 'mixed' ? 'Vegyes feladat' : t.kind;
+  const tg = cur.target;
+  $('qAsk').innerHTML = 'Számold ki ' + nameOf(tg) + (isSide(tg) ? ' hosszát' : ' nagyságát') + '! Írd fel a megfelelő tételt a gombokkal, aztán oldd meg az egyenletet.';
+  $('solvePart').hidden = true;
+  $('bHint').hidden = false; $('bReveal').hidden = true; $('bNext').hidden = true; $('bUndo').hidden = true;
+  clearFb();
+  if (state.topic !== 'mixed') st.thm = { kind: t.thm, slots: Array(t.thm === 'sin' ? 4 : 6).fill(null), active: 0 };
+  renderTabs(); renderTpl(); renderData(); drawFig(); renderRule();
+}
+
+/* ---------- Események ---------- */
+$('topics').addEventListener('click', e => {
+  const b = e.target.closest('.topic'); if (!b) return;
+  state.topic = b.dataset.id; save(); renderTopics(); newTask();
+});
+$('levels').addEventListener('click', e => {
+  const b = e.target.closest('.lv'); if (!b) return;
+  state.level = Number(b.dataset.id); save(); renderLevels(); newTask();
+});
+$('tabs').addEventListener('click', e => { const b = e.target.closest('.lv'); if (b) chooseThm(b.dataset.k); });
+$('tpl').addEventListener('click', e => {
+  const b = e.target.closest('.ts'); if (!b || st.phase !== 'thm') return;
+  st.thm.active = Number(b.dataset.i); renderTpl();
+});
+$('elKeys').addEventListener('click', e => { const b = e.target.closest('.key'); if (b) putEl(b.dataset.k); });
+$('bThm').addEventListener('click', checkThm);
+$('bClr').addEventListener('click', () => { if (st.thm.kind) chooseThm(st.thm.kind); });
+$('bThird').addEventListener('click', doThird);
+$('opKeys').addEventListener('click', e => {
+  const b = e.target.closest('.key'); if (!b) return;
+  st.selOp = st.selOp === b.dataset.o ? null : b.dataset.o; renderSolve();
+});
+$('operands').addEventListener('click', e => {
+  const b = e.target.closest('.key'); if (!b) return;
+  const o = st.opList[Number(b.dataset.i)]; if (o) userOp(o.op);
+});
+$('specKeys').addEventListener('click', e => { const b = e.target.closest('.key'); if (b) userOp({ k: b.dataset.s }); });
+$('bHint').addEventListener('click', hint);
+$('bUndo').addEventListener('click', undo);
+$('bReveal').addEventListener('click', reveal);
+$('bNext').addEventListener('click', newTask);
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && st && st.finished && document.activeElement !== $('bNext')) { e.preventDefault(); newTask(); }
+});
+let resetArmed = false, resetTimer = null;
+$('bReset').addEventListener('click', () => {
+  const b = $('bReset');
+  if (!resetArmed) {
+    resetArmed = true; b.textContent = 'Biztosan törlöd? Kattints még egyszer.'; b.classList.add('warn');
+    resetTimer = setTimeout(() => { resetArmed = false; b.textContent = 'Eredmények törlése'; b.classList.remove('warn'); }, 4000);
+    return;
+  }
+  clearTimeout(resetTimer); resetArmed = false; b.textContent = 'Eredmények törlése'; b.classList.remove('warn');
+  state.stats = {}; state.streak = 0; save(); renderTopics(); renderTally();
+});
+
+load(); renderTopics(); renderLevels(); renderTally(); newTask();
+</script>
+</body></html>
